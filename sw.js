@@ -1,6 +1,6 @@
 // Offline shell: serve from cache, refresh the cache in the background.
-const CACHE = 'nooruz-v1';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './logic.js', './data.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png'];
+const CACHE = 'nooruz-v2';
+const ASSETS = ['./', './index.html', './app.html', './styles.css', './mockup.css', './mockup.js', './app.js', './logic.js', './data.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
