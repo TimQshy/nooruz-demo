@@ -147,6 +147,10 @@ body { font-size: 15px; }
 .qs label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
 .qs input { margin: 3px 0 0; accent-color: var(--accent); width: 16px; height: 16px; }
 .qs label:has(input:checked) { border-color: var(--accent); }
+.qs-form { display: grid; gap: 8px; margin-top: 12px; max-width: 520px; width: 100%; }
+.qs-form .input { height: 42px; width: 100%; font-size: 15px; }
+.qs-form .textarea { font-size: 15px; }
+.send-status { margin: 10px 0 0; color: var(--st-paid); font-weight: 500; min-height: 1.4em; }
 .final-acts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
 .final-acts .btn { height: 40px; padding: 0 18px; font-size: 14px; }
 .d-bar { display: flex; align-items: center; gap: 12px; padding: 10px max(20px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); border-top: 1px solid var(--line); background: var(--bg); }

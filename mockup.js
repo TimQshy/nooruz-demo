@@ -157,11 +157,38 @@ const SLIDES = [
         <div class="tl new d3"><span class="d">25 окт</span>${si('promised')}<span>Мама обещала до 30 окт, бот ждёт</span></div></div></div>
       <div class="card"><div class="card-h"><span>Должники</span><span>3</span></div>${li('promised', 'Айпери Маратова', 'обещали 30 окт', '4 000 сом', '3 дн.', 'hl new d4')}${li('overdue', 'Нурислам Осмонов', 'мама Айгуль', '3 000 сом', '21 дн.', '', 'bad')}${li('overdue', 'Бермет Шаршеева', 'сама', '2 000 сом', '10 дн.', '', 'bad')}</div>`, 'debt') },
   { key: 'report', kind: 'dash', html: () => `<div class="s-text"><div class="eyebrow">Для руководителя</div><h2>Сколько собрано — на одном экране</h2><p>Пример на тестовых данных: 24 ученика, 6 групп, июль–октябрь.</p></div>${dashboard()}` },
-  { key: 'final', kind: 'center', html: () => `<div class="s-text"><div class="eyebrow">Ваше мнение</div><h2>Это то, что вам нужно?</h2><p>Отметьте, что важно для вашего центра, и отправьте Тимуру. Под ваши ответы соберём рабочую версию.</p></div>
-      <div class="qs">${['Напоминания об оплате в WhatsApp', 'Проверка чеков через ИИ', 'Отчёт по оплатам за месяц', 'Отметка посещаемости на занятиях', 'Оплата за количество занятий, а не за месяц', 'Несколько филиалов'].map((t, i) => `<label><input type="checkbox" id="q${i}" ${i < 3 ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
-      <div class="final-acts"><button class="btn primary" data-act="copy">Скопировать ответ для WhatsApp</button><a class="btn" href="app.html">Попробовать полное демо</a><button class="btn ghost" data-go="0">Сначала</button></div>
+  { key: 'final', kind: 'center', html: () => `<div class="s-text"><div class="eyebrow">Ваше мнение</div><h2>Это то, что вам нужно?</h2><p>Отметьте, что важно для вашего центра, и отправьте ответ. Под ваши ответы соберём рабочую версию.</p></div>
+      <div class="qs">${FEATURES.map((t, i) => `<label><input type="checkbox" data-fb-f="${i}" ${fb.f[i] ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
+      <div class="qs-form"><input class="input" data-fb="name" placeholder="Ваше имя" value="${esc(fb.name)}" aria-label="Имя" autocomplete="name">
+        <input class="input" data-fb="contact" placeholder="Телефон или WhatsApp" value="${esc(fb.contact)}" aria-label="Телефон" inputmode="tel" autocomplete="tel">
+        <textarea class="textarea" data-fb="comment" rows="3" placeholder="Что добавить, убрать или сделать иначе?" aria-label="Комментарий">${esc(fb.comment)}</textarea></div>
+      <div class="final-acts"><button class="btn primary" data-act="send" ${fb.sent ? 'disabled' : ''}>${fb.sent ? 'Ответ отправлен ✓' : 'Отправить ответ'}</button><button class="btn" data-act="copy">Скопировать для WhatsApp</button><a class="btn ghost" href="app.html">Полное демо</a></div>
+      <p class="send-status" id="send-status" role="status">${fb.sent ? 'Спасибо! Тимур получил ваш ответ и свяжется с вами.' : ''}</p>
       <textarea class="textarea" id="copy-out" rows="6" hidden aria-label="Текст ответа"></textarea>` },
 ];
+
+// Answers go to a Google Sheet through an Apps Script web app (feedback-gas/).
+const FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbyaDfN41HGj74crtJr-S_r72uRr72GfBROOYElBRBePbQ1JDmXFynbDaFqkn-aWa3Lf/exec';
+const FEATURES = ['Напоминания об оплате в WhatsApp', 'Проверка чеков через ИИ', 'Отчёт по оплатам за месяц', 'Отметка посещаемости на занятиях', 'Оплата за количество занятий, а не за месяц', 'Несколько филиалов'];
+const fb = { f: FEATURES.map((_, i) => i < 3), name: '', contact: '', comment: '', sent: false };
+const fbText = () => 'Нооруз CRM — ответ' + (fb.name ? ' от ' + fb.name : '') + ':\n' + FEATURES.map((t, i) => (fb.f[i] ? '✓ ' : '✗ ') + t).join('\n') + (fb.comment ? '\n\n' + fb.comment : '');
+
+async function sendFeedback(btn) {
+  const status = document.getElementById('send-status');
+  btn.disabled = true; btn.textContent = 'Отправляем…'; status.textContent = '';
+  const body = JSON.stringify({ name: fb.name, contact: fb.contact, comment: fb.comment, answers: FEATURES.map((t, i) => ({ feature: t, wanted: fb.f[i] })), device: navigator.userAgent, page: location.href });
+  try {
+    // no-cors: Apps Script does not send CORS headers; the request still reaches the sheet.
+    await fetch(FEEDBACK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
+    fb.sent = true;
+    btn.textContent = 'Ответ отправлен ✓';
+    status.textContent = 'Спасибо! Тимур получил ваш ответ и свяжется с вами.';
+  } catch {
+    btn.disabled = false; btn.textContent = 'Отправить ответ';
+    status.style.color = 'var(--st-over)';
+    status.textContent = 'Не получилось отправить. Нажмите «Скопировать для WhatsApp» и пришлите ответ Тимуру.';
+  }
+}
 
 let cur = 0, show = null;
 const total = SLIDES.length;
@@ -215,13 +242,19 @@ document.addEventListener('click', e => {
   const id = e.target.closest('button')?.id;
   if (id === 'next') go(cur + 1);
   if (id === 'prev') go(cur - 1);
+  const sendBtn = e.target.closest('[data-act=send]'); if (sendBtn) { sendFeedback(sendBtn); return; }
   if (e.target.closest('[data-act=copy]')) {
-    const picked = [...document.querySelectorAll('.qs label')].map(l => (l.querySelector('input').checked ? '✓ ' : '✗ ') + l.textContent.trim());
-    const text = 'Нооруз CRM — что нам важно:\n' + picked.join('\n');
+    const text = fbText();
     const out = document.getElementById('copy-out'); out.value = text;
     const fallback = () => { out.hidden = false; out.select(); };
     try { navigator.clipboard.writeText(text).then(() => { e.target.textContent = 'Скопировано ✓'; }, fallback); } catch { fallback(); }
   }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.fb) fb[t.dataset.fb] = t.value;
+  if (t.dataset.fbF != null) fb.f[Number(t.dataset.fbF)] = t.checked;
+  if (t.dataset.fb || t.dataset.fbF != null) { fb.sent = false; const b = document.querySelector('[data-act=send]'); if (b) { b.disabled = false; b.textContent = 'Отправить ответ'; } }
 });
 document.addEventListener('keydown', e => {
   if (e.target.closest('input, textarea')) return;
