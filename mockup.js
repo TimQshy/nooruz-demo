@@ -43,12 +43,12 @@ const bub = (m, fresh, d = '') => {
   if (m.sep) return `<div class="day-sep ${cls}">${m.sep}</div>`;
   if (m.img) return `<div class="bub in img ${cls}">${receiptPic(m.img)}<time>18:41</time></div>`;
   if (m.in) return `<div class="bub in ${cls}">${esc(m.in)}<time>${m.t}</time></div>`;
-  return `<div class="bub out ${cls}"><span class="tg">${m.tag || 'Нооруз · бот'}</span>${esc(m.out)}<time>${m.t}</time></div>`;
+  return `<div class="bub out ${cls}"><span class="tg">${m.tag || 'Бот центра'}</span>${esc(m.out)}<time>${m.t}</time></div>`;
 };
 function waPhone(old, fresh) {
   const delays = ['', 'd1', 'd2', 'd3', 'd4'];
   return `<div class="phone"><div class="notch"></div><div class="screen wa-screen"><div class="sbar"><span>18:50</span><span>●●●</span></div>
-    <div class="wa-top"><div class="av">Н</div><div><b>Нооруз · учебный центр</b><small>бизнес-аккаунт WhatsApp</small></div></div>
+    <div class="wa-top"><div class="av">УЦ</div><div><b>Ваш учебный центр</b><small>бизнес-аккаунт WhatsApp</small></div></div>
     <div class="wa-chat">${old.map(m => bub(m, false)).join('')}${fresh.map((m, i) => bub(m, true, delays[i] || 'd4')).join('')}</div>
     <div class="wa-in"><span></span><i></i></div></div></div>`;
 }
@@ -57,7 +57,7 @@ function waPhone(old, fresh) {
 function adPhone(title, body, on = 'pay') {
   const nav = [['pay', 'Оплаты'], ['inbox', 'Чеки'], ['debt', 'Должники'], ['report', 'Отчёт']];
   return `<div class="phone"><div class="notch"></div><div class="screen ad-screen"><div class="sbar"><span>18:50</span><span>●●●</span></div>
-    <div class="ad-top"><span class="ws-logo">Н</span><b>${title}</b><span class="t3">19 окт</span></div>
+    <div class="ad-top"><span class="ws-logo">✓</span><b>${title}</b><span class="t3">19 окт</span></div>
     <div class="ad-body">${body}</div>
     <div class="ad-nav">${nav.map(([k, t]) => `<span class="${k === on ? 'on' : ''}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${navIc[k]}</svg>${t}</span>`).join('')}</div></div></div>`;
 }
@@ -123,7 +123,7 @@ function dashboard() {
 
 // ---------- slides
 const SLIDES = [
-  { key: 'title', kind: 'center', html: () => `<div class="s-text"><div class="eyebrow">Для учебного центра «Нооруз»</div><h1>Оплаты учеников<br>без журнала</h1>
+  { key: 'title', kind: 'center', html: () => `<div class="s-text"><div class="eyebrow">Для вашего учебного центра</div><h1>Оплаты учеников<br>без журнала</h1>
       <p>Бот сам напоминает родителям в WhatsApp, ИИ проверяет чеки, а вы в телефоне видите, кто оплатил.</p>
       <button class="btn primary start" data-go="1">Посмотреть, как это работает →</button></div>` },
   { key: 'compare', kind: 'wide', html: () => `<div class="s-text"><div class="eyebrow">Что изменится</div><h2>Меньше памяти и переписок, больше порядка</h2></div>
@@ -135,7 +135,7 @@ const SLIDES = [
       <div class="card"><div class="card-h"><span>Скоро оплата</span><span>4</span></div>${li('due', 'Айпери Маратова', 'мама Чолпон', '4 000 сом', '22 окт', 'hl')}${others}</div>`) },
   { key: 'receipt', eyebrow: 'Шаг 2 · мама оплатила', title: 'Мама присылает фото чека', text: 'Прямо в этот же чат. Бот отвечает, что чек получен, а администратору приходит уведомление.', show: 'parent',
     wa: [[{ sep: '19 октября' }, W.before], [{ img: 4000 }, W.ack]],
-    ad: () => adPhone('Оплаты', `<div class="push new d2"><span class="ws-logo">Н</span><b>Новый чек · 4 000 сом</b><span class="t3">Чолпон (мама) · Айпери Маратова</span></div>
+    ad: () => adPhone('Оплаты', `<div class="push new d2"><span class="ws-logo">✓</span><b>Новый чек · 4 000 сом</b><span class="t3">Чолпон (мама) · Айпери Маратова</span></div>
       <div class="card"><div class="card-h"><span>Скоро оплата</span><span>4</span></div>${li('review', 'Айпери Маратова', 'чек получен, проверяется', '4 000 сом', '22 окт', 'hl new d2')}${others}</div>`) },
   { key: 'ai', eyebrow: 'Шаг 3 · пара секунд', title: 'ИИ проверяет чек', text: 'Сумма, получатель, дата и номер операции. Если чек повторный, чужой или на другую сумму, система это покажет.', show: 'admin',
     wa: [[{ sep: '19 октября' }, W.before, { img: 4000 }, W.ack], []],
@@ -171,7 +171,7 @@ const SLIDES = [
 const FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbyaDfN41HGj74crtJr-S_r72uRr72GfBROOYElBRBePbQ1JDmXFynbDaFqkn-aWa3Lf/exec';
 const FEATURES = ['Напоминания об оплате в WhatsApp', 'Проверка чеков через ИИ', 'Отчёт по оплатам за месяц', 'Отметка посещаемости на занятиях', 'Оплата за количество занятий, а не за месяц', 'Несколько филиалов'];
 const fb = { f: FEATURES.map((_, i) => i < 3), name: '', contact: '', comment: '', sent: false };
-const fbText = () => 'Нооруз CRM — ответ' + (fb.name ? ' от ' + fb.name : '') + ':\n' + FEATURES.map((t, i) => (fb.f[i] ? '✓ ' : '✗ ') + t).join('\n') + (fb.comment ? '\n\n' + fb.comment : '');
+const fbText = () => 'CRM для учебного центра — ответ' + (fb.name ? ' от ' + fb.name : '') + ':\n' + FEATURES.map((t, i) => (fb.f[i] ? '✓ ' : '✗ ') + t).join('\n') + (fb.comment ? '\n\n' + fb.comment : '');
 
 async function sendFeedback(btn) {
   const status = document.getElementById('send-status');

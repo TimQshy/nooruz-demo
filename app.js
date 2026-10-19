@@ -416,7 +416,7 @@ function render() {
   const navBtn = ([k, t]) => `<button class="nav-item" data-act="go" data-page="${k}" ${ui.page === k ? 'aria-current="page"' : ''}>${icon(k)}<span>${t}</span>${c[k] ? `<span class="count ${k === 'inbox' ? 'hot' : ''}">${c[k]}</span>` : ''}</button>`;
   document.getElementById('app').innerHTML = `
   <aside class="side">
-    <div class="ws"><span class="ws-logo">Н</span>${esc(S.center.name)}</div>
+    <div class="ws"><span class="ws-logo">✓</span>${esc(S.center.name)}</div>
     <button class="search-btn" data-act="palette">${icon('search', 'si')}Поиск и команды<kbd>⌘K</kbd></button>
     ${NAV.slice(0, 1).map(navBtn).join('')}
     <div class="nav-label">Центр</div>

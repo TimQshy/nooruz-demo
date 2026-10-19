@@ -48,7 +48,7 @@ const pad = n => String(n).padStart(2, '0');
 export function buildSeed() {
   const st = {
     version: 2, seq: 0, today: '2026-07-01',
-    center: { name: 'Нооруз', bank: 'MBank', account: '+996 700 123 456', recipient: 'Назира А.' },
+    center: { name: 'Учебный центр', bank: 'MBank', account: '+996 700 123 456', recipient: 'Назира А.' },
     settings: { reminders: { ...L.DEFAULT_REMINDERS }, templates: { ...L.TEMPLATES } },
     groups: GROUPS.map(g => ({ ...g })),
     payers: [], students: [], ledger: [], receipts: [], promises: [], messages: [], bank: [], sentDays: [],

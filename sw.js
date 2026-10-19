@@ -1,5 +1,5 @@
 // Network first, so a new deploy shows up on the next open; the cache is the offline fallback.
-const CACHE = 'nooruz-v5';
+const CACHE = 'nooruz-v6';
 const ASSETS = ['./', './index.html', './app.html', './styles.css', './mockup.css', './mockup.js', './app.js', './logic.js', './data.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))); self.skipWaiting(); });
