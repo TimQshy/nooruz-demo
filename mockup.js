@@ -66,7 +66,7 @@ const others = `${li('due', 'Алина Ким', 'IELTS', '5 400 сом', '22 о
 const checks = (rows, fresh) => `<div class="ck-list">${rows.map(([lvl, k, v], i) => `<div class="ck-row ${lvl} ${fresh ? 'new d' + (i + 1) : ''}"><span class="ic">${lvl === 'ok' ? '✓' : '!'}</span><span><span class="k">${k}:</span> <span class="v">${v}</span></span></div>`).join('')}</div>`;
 const checkCard = (amount, rows, verdict, fresh, btn) => `<div class="card"><div class="card-h"><span>Чек от Чолпон (мама)</span><span>18:41</span></div>
   <div class="mini-r">${receiptPic(amount).replace('receipt sm', 'receipt')}<div style="font-size:12px;display:grid;gap:3px"><b>Айпери Маратова</b><span class="t3">Корейский A1</span><span>К оплате: <b>4 000 сом</b></span></div></div>
-  ${checks(rows, fresh)}<div class="verd ${verdict[0]} ${fresh ? 'new d5' : ''}">${verdict[1]}</div></div>${btn || ''}`;
+  <div class="verd ${verdict[0]} ${fresh ? 'new d5' : ''}">${verdict[1]}</div>${checks(rows, fresh)}</div>${btn || ''}`;
 
 // ---------- report data from the seed
 const S = buildSeed();
@@ -111,7 +111,7 @@ function dashboard() {
       <div class="kpi"><span class="k">Чеков проверил ИИ</span><span class="v">${octReceipts}</span><span class="s">за октябрь, вручную — 0</span></div>
     </div>
     <div class="charts">
-      <div class="chart-card" id="mchart"><h3>Собрано по месяцам</h3><div class="sub">Наведите на месяц, чтобы увидеть детали</div>
+      <div class="chart-card" id="mchart"><h3>Собрано по месяцам</h3><div class="sub">Нажмите на столбец, чтобы увидеть детали</div>
         <div class="legend-row"><span><i></i>Собрано</span><span><i class="t"></i>Начислено</span></div>
         ${monthChart()}<div class="tip" hidden></div>
         <details class="table"><summary>Показать таблицей</summary><table><tr><th>Месяц</th><th>Начислено</th><th>Собрано</th><th>%</th></tr>${rep.map((r, i) => `<tr><td>${MONTHS[i]}</td><td>${money(r.charged)}</td><td>${money(r.collected)}</td><td>${Math.round(r.collected / r.charged * 100)}%</td></tr>`).join('')}</table></details></div>
@@ -144,7 +144,7 @@ const SLIDES = [
     wa: [[{ sep: '19 октября' }, W.before, { img: 4000 }, W.ack], [W.thanks]],
     ad: () => adPhone('Оплаты', `<button class="ad-btn primary tap" tabindex="-1">Подтвердить 4 000 сом</button>
       <div class="card"><div class="card-h"><span>Оплачено сегодня</span><span>1</span></div>${li('paid', 'Айпери Маратова', 'Корейский A1 · до 22 ноя', '4 000 сом', 'оплачено', 'hl new d4')}</div>
-      <div class="card"><div class="card-h"><span>Скоро оплата</span><span>3</span></div>${others}</div>`) },
+      <div class="card m-hide"><div class="card-h"><span>Скоро оплата</span><span>3</span></div>${others}</div>`) },
   { key: 'partial', eyebrow: 'А если перевели не всю сумму', title: 'Остаток система запомнит', text: 'Засчитываем, сколько пришло. Бот сам скажет родителю про остаток и напомнит о нём. Переплата закроет следующий месяц.', show: 'admin',
     wa: [[{ sep: '19 октября' }, W.before, { img: 3500 }, W.ack], [W.partial]],
     ad: () => adPhone('Чек', checkCard(3500, [['warn', 'Сумма', '3 500 сом, меньше на 500'], ['ok', 'Получатель', 'Назира А.'], ['ok', 'Дата', 'сегодня, 18:41'], ['ok', 'Номер операции', 'раньше не встречался']], ['warn', 'Засчитать 3 500, долг 500 сом'], true, '<button class="ad-btn primary">Засчитать 3 500 сом</button>'), 'inbox') },
@@ -155,14 +155,14 @@ const SLIDES = [
         <div class="tl new d1"><span class="d">22 окт</span>${si('due')}<span>День оплаты, напомнили</span></div>
         <div class="tl new d2"><span class="d">25 окт</span>${si('overdue')}<span>Просрочка 3 дн., напомнили</span></div>
         <div class="tl new d3"><span class="d">25 окт</span>${si('promised')}<span>Мама обещала до 30 окт, бот ждёт</span></div></div></div>
-      <div class="card"><div class="card-h"><span>Должники</span><span>3</span></div>${li('promised', 'Айпери Маратова', 'обещали 30 окт', '4 000 сом', '3 дн.', 'hl new d4')}${li('overdue', 'Нурислам Осмонов', 'мама Айгуль', '3 000 сом', '21 дн.', '', 'bad')}${li('overdue', 'Бермет Шаршеева', 'сама', '2 000 сом', '10 дн.', '', 'bad')}</div>`, 'debt') },
+      <div class="card m-hide"><div class="card-h"><span>Должники</span><span>3</span></div>${li('promised', 'Айпери Маратова', 'обещали 30 окт', '4 000 сом', '3 дн.', 'hl new d4')}${li('overdue', 'Нурислам Осмонов', 'мама Айгуль', '3 000 сом', '21 дн.', '', 'bad')}${li('overdue', 'Бермет Шаршеева', 'сама', '2 000 сом', '10 дн.', '', 'bad')}</div>`, 'debt') },
   { key: 'report', kind: 'dash', html: () => `<div class="s-text"><div class="eyebrow">Для руководителя</div><h2>Сколько собрано — на одном экране</h2><p>Пример на тестовых данных: 24 ученика, 6 групп, июль–октябрь.</p></div>${dashboard()}` },
   { key: 'final', kind: 'center', html: () => `<div class="s-text"><div class="eyebrow">Ваше мнение</div><h2>Это то, что вам нужно?</h2><p>Отметьте, что важно для вашего центра, и отправьте ответ. Под ваши ответы соберём рабочую версию.</p></div>
       <div class="qs">${FEATURES.map((t, i) => `<label><input type="checkbox" data-fb-f="${i}" ${fb.f[i] ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
       <div class="qs-form"><input class="input" data-fb="name" placeholder="Ваше имя" value="${esc(fb.name)}" aria-label="Имя" autocomplete="name">
         <input class="input" data-fb="contact" placeholder="Телефон или WhatsApp" value="${esc(fb.contact)}" aria-label="Телефон" inputmode="tel" autocomplete="tel">
         <textarea class="textarea" data-fb="comment" rows="3" placeholder="Что добавить, убрать или сделать иначе?" aria-label="Комментарий">${esc(fb.comment)}</textarea></div>
-      <div class="final-acts"><button class="btn primary" data-act="send" ${fb.sent ? 'disabled' : ''}>${fb.sent ? 'Ответ отправлен ✓' : 'Отправить ответ'}</button><button class="btn" data-act="copy">Скопировать для WhatsApp</button><a class="btn ghost" href="app.html">Полное демо</a></div>
+      <div class="final-acts"><button class="btn primary" data-act="send" ${fb.sent ? 'disabled' : ''}>${fb.sent ? 'Ответ отправлен ✓' : 'Отправить ответ'}</button><button class="btn" data-act="copy">Скопировать для WhatsApp</button></div>
       <p class="send-status" id="send-status" role="status">${fb.sent ? 'Спасибо! Тимур получил ваш ответ и свяжется с вами.' : ''}</p>
       <textarea class="textarea" id="copy-out" rows="6" hidden aria-label="Текст ответа"></textarea>` },
 ];
@@ -196,7 +196,7 @@ const total = SLIDES.length;
 function stage(sl) {
   const side = show || sl.show;
   return `<div class="stage" data-show="${side}">
-    <div class="dev-tabs" role="tablist"><button class="chip" data-side="parent" aria-pressed="${side === 'parent'}">Телефон мамы</button><button class="chip" data-side="admin" aria-pressed="${side === 'admin'}">Администратор</button></div>
+    <div class="dev-tabs" role="tablist"><button class="seg" data-side="parent" aria-pressed="${side === 'parent'}">Мама в WhatsApp</button><button class="seg" data-side="admin" aria-pressed="${side === 'admin'}">Администратор</button></div>
     <div class="dev parent"><span class="dev-l">Телефон мамы · WhatsApp</span>${waPhone(sl.wa[0], sl.wa[1])}</div>
     <div class="dev admin"><span class="dev-l">Телефон администратора</span>${sl.ad()}</div></div>`;
 }
@@ -205,11 +205,12 @@ function render() {
   const sl = SLIDES[cur];
   const inner = sl.html
     ? `<div class="s-in ${sl.kind === 'center' ? 'center' : sl.kind === 'dash' ? 'dash' : 'wide'} s-anim">${sl.html()}</div>`
-    : `<div class="s-in s-anim"><div class="s-text"><div class="eyebrow">${sl.eyebrow}</div><h2>${sl.title}</h2><p>${sl.text}</p></div>${stage(sl)}</div>`;
+    : `<div class="s-in flowslide s-anim"><div class="s-text"><div class="eyebrow">${sl.eyebrow}</div><h2>${sl.title}</h2><p>${sl.text}</p></div>${stage(sl)}</div>`;
   document.getElementById('slide').innerHTML = inner;
   document.getElementById('slide').scrollTop = 0;
   document.getElementById('dots').innerHTML = SLIDES.map((s, i) => `<button data-go="${i}" aria-label="Слайд ${i + 1}" ${i === cur ? 'aria-current="step"' : ''}></button>`).join('');
   document.getElementById('count').textContent = `${cur + 1} / ${total}`;
+  document.getElementById('count-top').textContent = `${cur + 1} / ${total}`;
   document.getElementById('prev').disabled = cur === 0;
   const next = document.getElementById('next');
   next.disabled = cur === total - 1;
