@@ -1,5 +1,6 @@
 // Interactive pitch for the client: one story (mum pays for Айпери's Korean course)
-// told slide by slide on two phones, then the owner's report. Report numbers come
+// told slide by slide on two phones, then a student card (attendance and grades, a
+// possible extra) and the owner's report. Report numbers come
 // from the same seed and logic as the full demo (app.html).
 import * as L from './logic.js';
 import { buildSeed } from './data.js';
@@ -19,7 +20,7 @@ const si = k => `<svg class="si" viewBox="0 0 14 14" aria-hidden="true">${SI[k]}
 const navIc = {
   pay: '<rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M1.5 6.5h13M4 10h3"/>',
   inbox: '<path d="M2 9.5h3l1 2h4l1-2h3"/><path d="M3.6 3h8.8L14 9.5V13H2V9.5z"/>',
-  debt: '<path d="M8 1.8 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5v.01"/>',
+  students: '<circle cx="8" cy="5.5" r="2.8"/><path d="M2.5 14c.6-2.9 2.8-4.5 5.5-4.5s4.9 1.6 5.5 4.5"/>',
   report: '<path d="M2.5 13.5h11M4.5 11V7M8 11V3.5M11.5 11V8.5"/>',
 };
 
@@ -29,11 +30,9 @@ const W = {
   before: { out: 'Здравствуйте, Чолпон! Напоминаем: 22 окт оплата за Айпери — «Корейский A1» — 4 000 сом.\nРеквизиты: ' + REQ + '\nПосле оплаты пришлите, пожалуйста, фото чека в этот чат.', t: '10:00' },
   ack: { out: 'Спасибо, чек получили! Администратор подтвердит оплату в течение дня.', t: '18:42' },
   thanks: { out: 'Оплата 4 000 сом получена. Спасибо!', t: '18:50' },
-  partial: { out: 'Получили 3 500 сом, спасибо! Осталось доплатить 500 сом. Реквизиты те же.', t: '18:50' },
-  day: { out: 'Здравствуйте, Чолпон! Сегодня день оплаты за Айпери — «Корейский A1» — 4 000 сом.\nПосле перевода пришлите чек в этот чат.', t: '10:00' },
-  late: { out: 'Здравствуйте, Чолпон! Оплата за «Корейский A1» просрочена на 3 дн. К оплате — 4 000 сом. Если уже оплатили, пришлите чек.', t: '10:00' },
-  ask: { in: 'Здравствуйте! Можно оплатить 30-го? Зарплату задерживают.', t: '11:20' },
-  yes: { out: 'Да, можно до 30 окт. Записали, ждём оплату.', t: '11:34', tag: 'Администратор' },
+  absent: { out: 'Здравствуйте, Чолпон! Айпери сегодня не пришла на занятие «Корейский A1» в 16:00. Всё в порядке?', t: '16:15' },
+  sick: { in: 'Здравствуйте, она заболела. В понедельник придёт.', t: '16:32' },
+  getWell: { out: 'Выздоравливайте! Отметили пропуск по болезни.', t: '16:40', tag: 'Администратор' },
 };
 const receiptPic = amount => `<div class="receipt sm" role="img" aria-label="Фото чека"><div class="ck">✓</div><div class="t">Перевод выполнен</div><div class="a">${money(amount)}</div>
   <div class="r"><span>Получатель</span><span>Назира А.</span></div><div class="r"><span>Банк</span><span>MBank</span></div>
@@ -55,7 +54,7 @@ function waPhone(old, fresh) {
 
 // ---------- admin phone
 function adPhone(title, body, on = 'pay') {
-  const nav = [['pay', 'Оплаты'], ['inbox', 'Чеки'], ['debt', 'Должники'], ['report', 'Отчёт']];
+  const nav = [['pay', 'Оплаты'], ['inbox', 'Чеки'], ['students', 'Ученики'], ['report', 'Отчёт']];
   return `<div class="phone"><div class="notch"></div><div class="screen ad-screen"><div class="sbar"><span>18:50</span><span>●●●</span></div>
     <div class="ad-top"><span class="ws-logo">✓</span><b>${title}</b><span class="t3">19 окт</span></div>
     <div class="ad-body">${body}</div>
@@ -69,6 +68,22 @@ const checkCard = (amount, rows, verdict, fresh, btn) => `<div class="card"><div
   <div class="verd ${verdict[0]} ${fresh ? 'new d5' : ''}">${verdict[1]}</div>${checks(rows, fresh)}</div>${btn || ''}`;
 
 // ---------- report data from the seed
+// Student card (possible extra): attendance in October (Mon/Wed/Fri), grades, payment.
+const LESSONS = [[2, 'y'], [5, 'y'], [7, 'y'], [9, 's'], [12, 'y'], [14, 'y'], [16, 'y'], [19, 'y'], [21], [23], [26], [28], [30]];
+const ATT_LABEL = { y: 'была', s: 'болела' };
+const GRADES = [['12 окт', 'Диктант по хангылю', 5], ['14 окт', 'Слова, урок 4', 4], ['16 окт', 'Устный ответ', 5]];
+function studentCard() {
+  const past = LESSONS.filter(l => l[1]), came = past.filter(l => l[1] === 'y').length;
+  const avg = (GRADES.reduce((a, g) => a + g[2], 0) / GRADES.length).toFixed(1).replace('.', ',');
+  const day = ([d, st], i) => `<span class="att ${st || 'fut'} ${st ? 'new d' + Math.min(5, Math.floor(i / 2) + 1) : ''}" title="${d} окт${st ? ' · ' + ATT_LABEL[st] : ''}">${d}</span>`;
+  return `<div class="card prof"><span class="av">АМ</span><div><b>Айпери Маратова</b><small>Корейский A1 · Пн, Ср, Пт 16:00</small><small>Мама: Чолпон</small></div></div>
+    <div class="stat3"><div class="card"><span class="k">Посещения</span><span class="v">${came} из ${past.length}</span></div><div class="card"><span class="k">Балл</span><span class="v">${avg}</span></div><div class="card"><span class="k">Оплата до</span><span class="v ok">22 ноя</span></div></div>
+    <div class="card"><div class="card-h"><span>Посещаемость · октябрь</span><span>${Math.round(came / past.length * 100)}%</span></div>
+      <div class="att-grid">${LESSONS.map(day).join('')}</div>
+      <div class="att-leg"><span><i class="y"></i>была</span><span><i class="s"></i>болела</span><span><i class="fut"></i>впереди</span></div></div>
+    <div class="card"><div class="card-h"><span>Оценки</span><span>${GRADES.length}</span></div>${GRADES.map(([d, t, g]) => `<div class="li"><div class="g"><b>${t}</b><small>${d}</small></div><span class="grade g${g}">${g}</span></div>`).join('')}</div>`;
+}
+
 const S = buildSeed();
 const MONTHS = ['Июль', 'Август', 'Сентябрь', 'Октябрь'];
 const periods = ['2026-07', '2026-08', '2026-09', '2026-10'];
@@ -137,58 +152,15 @@ const SLIDES = [
     wa: [[{ sep: '19 октября' }, W.before], [{ img: 4000 }, W.ack]],
     ad: () => adPhone('Оплаты', `<div class="push new d2"><span class="ws-logo">✓</span><b>Новый чек · 4 000 сом</b><span class="t3">Чолпон (мама) · Айпери Маратова</span></div>
       <div class="card"><div class="card-h"><span>Скоро оплата</span><span>4</span></div>${li('review', 'Айпери Маратова', 'чек получен, проверяется', '4 000 сом', '22 окт', 'hl new d2')}${others}</div>`) },
-  { key: 'ai', eyebrow: 'Шаг 3 · пара секунд', title: 'ИИ проверяет чек', text: 'Сумма, получатель, дата и номер операции. Если чек повторный, чужой или на другую сумму, система это покажет.', show: 'admin',
-    wa: [[{ sep: '19 октября' }, W.before, { img: 4000 }, W.ack], []],
-    ad: () => adPhone('Чек', checkCard(4000, [['ok', 'Сумма', '4 000 сом, как в счёте'], ['ok', 'Получатель', 'Назира А., наши реквизиты'], ['ok', 'Дата', 'сегодня, 18:41'], ['ok', 'Номер операции', 'раньше не встречался']], ['ok', 'Всё сходится'], true), 'inbox') },
-  { key: 'confirm', eyebrow: 'Шаг 4 · одна кнопка', title: 'Вы подтверждаете, оплата засчитана', text: 'Маме приходит «Спасибо», ученик отмечается оплаченным до следующего месяца. Всё это видно в телефоне.', show: 'admin',
+  { key: 'ai', eyebrow: 'Шаг 3 · пара секунд', title: 'ИИ проверяет чек, вы подтверждаете', text: 'Сумма, получатель, дата и номер операции. Если всё сходится, нажимаете одну кнопку, и маме приходит «Спасибо». Повторный, чужой или неполный чек система покажет.', show: 'admin',
     wa: [[{ sep: '19 октября' }, W.before, { img: 4000 }, W.ack], [W.thanks]],
-    ad: () => adPhone('Оплаты', `<button class="ad-btn primary tap" tabindex="-1">Подтвердить 4 000 сом</button>
-      <div class="card"><div class="card-h"><span>Оплачено сегодня</span><span>1</span></div>${li('paid', 'Айпери Маратова', 'Корейский A1 · до 22 ноя', '4 000 сом', 'оплачено', 'hl new d4')}</div>
-      <div class="card m-hide"><div class="card-h"><span>Скоро оплата</span><span>3</span></div>${others}</div>`) },
-  { key: 'partial', eyebrow: 'А если перевели не всю сумму', title: 'Остаток система запомнит', text: 'Засчитываем, сколько пришло. Бот сам скажет родителю про остаток и напомнит о нём. Переплата закроет следующий месяц.', show: 'admin',
-    wa: [[{ sep: '19 октября' }, W.before, { img: 3500 }, W.ack], [W.partial]],
-    ad: () => adPhone('Чек', checkCard(3500, [['warn', 'Сумма', '3 500 сом, меньше на 500'], ['ok', 'Получатель', 'Назира А.'], ['ok', 'Дата', 'сегодня, 18:41'], ['ok', 'Номер операции', 'раньше не встречался']], ['warn', 'Засчитать 3 500, долг 500 сом'], true, '<button class="ad-btn primary">Засчитать 3 500 сом</button>'), 'inbox') },
-  { key: 'late', eyebrow: 'А если не оплатили', title: 'Бот напомнит ещё раз, должник будет в списке', text: 'В день оплаты и через 3 дня. Если родитель попросит отсрочку, бот подождёт до обещанной даты и напомнит в этот день.', show: 'admin',
-    wa: [[{ sep: '19 октября' }, W.before], [{ sep: '22 октября' }, W.day, { sep: '25 октября' }, W.late, W.ask, W.yes]],
-    ad: () => adPhone('Должники', `<div class="card"><div class="card-h"><span>Айпери Маратова</span><span>4 000 сом</span></div><div class="timeline">
-        <div class="tl new"><span class="d">19 окт</span>${si('chat')}<span>Напомнили за 3 дня</span></div>
-        <div class="tl new d1"><span class="d">22 окт</span>${si('due')}<span>День оплаты, напомнили</span></div>
-        <div class="tl new d2"><span class="d">25 окт</span>${si('overdue')}<span>Просрочка 3 дн., напомнили</span></div>
-        <div class="tl new d3"><span class="d">25 окт</span>${si('promised')}<span>Мама обещала до 30 окт, бот ждёт</span></div></div></div>
-      <div class="card m-hide"><div class="card-h"><span>Должники</span><span>3</span></div>${li('promised', 'Айпери Маратова', 'обещали 30 окт', '4 000 сом', '3 дн.', 'hl new d4')}${li('overdue', 'Нурислам Осмонов', 'мама Айгуль', '3 000 сом', '21 дн.', '', 'bad')}${li('overdue', 'Бермет Шаршеева', 'сама', '2 000 сом', '10 дн.', '', 'bad')}</div>`, 'debt') },
-  { key: 'report', kind: 'dash', html: () => `<div class="s-text"><div class="eyebrow">Для руководителя</div><h2>Сколько собрано — на одном экране</h2><p>Пример на тестовых данных: 24 ученика, 6 групп, июль–октябрь.</p></div>${dashboard()}` },
-  { key: 'final', kind: 'center', html: () => `<div class="s-text"><div class="eyebrow">Ваше мнение</div><h2>Это то, что вам нужно?</h2><p>Отметьте, что важно для вашего центра, и отправьте ответ. Под ваши ответы соберём рабочую версию.</p></div>
-      <div class="qs">${FEATURES.map((t, i) => `<label><input type="checkbox" data-fb-f="${i}" ${fb.f[i] ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
-      <div class="qs-form"><input class="input" data-fb="name" placeholder="Ваше имя" value="${esc(fb.name)}" aria-label="Имя" autocomplete="name">
-        <input class="input" data-fb="contact" placeholder="Телефон или WhatsApp" value="${esc(fb.contact)}" aria-label="Телефон" inputmode="tel" autocomplete="tel">
-        <textarea class="textarea" data-fb="comment" rows="3" placeholder="Что добавить, убрать или сделать иначе?" aria-label="Комментарий">${esc(fb.comment)}</textarea></div>
-      <div class="final-acts"><button class="btn primary" data-act="send" ${fb.sent ? 'disabled' : ''}>${fb.sent ? 'Ответ отправлен ✓' : 'Отправить ответ'}</button><button class="btn" data-act="copy">Скопировать для WhatsApp</button></div>
-      <p class="send-status" id="send-status" role="status">${fb.sent ? 'Спасибо! Тимур получил ваш ответ и свяжется с вами.' : ''}</p>
-      <textarea class="textarea" id="copy-out" rows="6" hidden aria-label="Текст ответа"></textarea>` },
+    ad: () => adPhone('Чек', checkCard(4000, [['ok', 'Сумма', '4 000 сом, как в счёте'], ['ok', 'Получатель', 'Назира А., наши реквизиты'], ['ok', 'Дата', 'сегодня, 18:41'], ['ok', 'Номер операции', 'раньше не встречался']], ['ok', 'Всё сходится'], true, '<button class="ad-btn primary tap" tabindex="-1">Подтвердить 4 000 сом</button>'), 'inbox') },
+  { key: 'student', eyebrow: 'Можно добавить', title: 'Карточка ученика: посещения и оценки', text: 'Учитель отмечает на занятии, кто пришёл. Если ученика нет, родителю сразу приходит сообщение. В карточке видно посещения, оценки и оплату.', show: 'admin',
+    wa: [[], [{ sep: '9 октября' }, W.absent, W.sick, W.getWell]],
+    ad: () => adPhone('Ученик', studentCard(), 'students') },
+  { key: 'report', kind: 'dash', html: () => `<div class="s-text"><div class="eyebrow">Для руководителя</div><h2>Сколько собрано — на одном экране</h2><p>Пример на тестовых данных: 24 ученика, 6 групп, июль–октябрь.</p></div>${dashboard()}
+      <div class="closing"><h3>Это то, что вам нужно?</h3><p>Скажите, что оставить, что убрать и чего не хватает. Под ваши ответы соберём рабочую версию.</p></div>` },
 ];
-
-// Answers go to a Google Sheet through an Apps Script web app (feedback-gas/).
-const FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbyaDfN41HGj74crtJr-S_r72uRr72GfBROOYElBRBePbQ1JDmXFynbDaFqkn-aWa3Lf/exec';
-const FEATURES = ['Напоминания об оплате в WhatsApp', 'Проверка чеков через ИИ', 'Отчёт по оплатам за месяц', 'Отметка посещаемости на занятиях', 'Оплата за количество занятий, а не за месяц', 'Несколько филиалов'];
-const fb = { f: FEATURES.map((_, i) => i < 3), name: '', contact: '', comment: '', sent: false };
-const fbText = () => 'CRM для учебного центра — ответ' + (fb.name ? ' от ' + fb.name : '') + ':\n' + FEATURES.map((t, i) => (fb.f[i] ? '✓ ' : '✗ ') + t).join('\n') + (fb.comment ? '\n\n' + fb.comment : '');
-
-async function sendFeedback(btn) {
-  const status = document.getElementById('send-status');
-  btn.disabled = true; btn.textContent = 'Отправляем…'; status.textContent = '';
-  const body = JSON.stringify({ name: fb.name, contact: fb.contact, comment: fb.comment, answers: FEATURES.map((t, i) => ({ feature: t, wanted: fb.f[i] })), device: navigator.userAgent, page: location.href });
-  try {
-    // no-cors: Apps Script does not send CORS headers; the request still reaches the sheet.
-    await fetch(FEEDBACK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
-    fb.sent = true;
-    btn.textContent = 'Ответ отправлен ✓';
-    status.textContent = 'Спасибо! Тимур получил ваш ответ и свяжется с вами.';
-  } catch {
-    btn.disabled = false; btn.textContent = 'Отправить ответ';
-    status.style.color = 'var(--st-over)';
-    status.textContent = 'Не получилось отправить. Нажмите «Скопировать для WhatsApp» и пришлите ответ Тимуру.';
-  }
-}
 
 let cur = 0, show = null;
 const total = SLIDES.length;
@@ -243,22 +215,8 @@ document.addEventListener('click', e => {
   const id = e.target.closest('button')?.id;
   if (id === 'next') go(cur + 1);
   if (id === 'prev') go(cur - 1);
-  const sendBtn = e.target.closest('[data-act=send]'); if (sendBtn) { sendFeedback(sendBtn); return; }
-  if (e.target.closest('[data-act=copy]')) {
-    const text = fbText();
-    const out = document.getElementById('copy-out'); out.value = text;
-    const fallback = () => { out.hidden = false; out.select(); };
-    try { navigator.clipboard.writeText(text).then(() => { e.target.textContent = 'Скопировано ✓'; }, fallback); } catch { fallback(); }
-  }
-});
-document.addEventListener('input', e => {
-  const t = e.target;
-  if (t.dataset.fb) fb[t.dataset.fb] = t.value;
-  if (t.dataset.fbF != null) fb.f[Number(t.dataset.fbF)] = t.checked;
-  if (t.dataset.fb || t.dataset.fbF != null) { fb.sent = false; const b = document.querySelector('[data-act=send]'); if (b) { b.disabled = false; b.textContent = 'Отправить ответ'; } }
 });
 document.addEventListener('keydown', e => {
-  if (e.target.closest('input, textarea')) return;
   if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
   if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
   if (e.key === 'Home') go(0);
